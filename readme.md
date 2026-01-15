@@ -164,30 +164,7 @@ gcp-cloudrun-cicd/
 └── README.md
 ```
 
----
-
-## 🔜 Next Steps
-
-* Create Artifact Registry
-* Configure IAM & Service Account
-* Setup GitHub Actions (CI/CD)
-* Push image to Artifact Registry
-* Deploy application to Cloud Run
-* (Optional) Attach Load Balancer
-
----
-
-## 🧠 What You’ll Learn
-
-* Cloud Run deployment workflow
-* Docker image lifecycle in GCP
-* Artifact Registry usage
-* GitHub Actions for CI/CD
-* IAM basics for Cloud Run
-
----
-
-🚀 **This project is beginner-friendly and production-oriented, designed to demonstrate real-world GCP CI/CD practices.**
+##
 
 ---
 
@@ -279,6 +256,69 @@ Click **Done**.
 
 ---
 
-✅ Service Account successfully created.
+## 🔐 What is **Workload Identity**?
 
+**Workload Identity** is a **secure way for applications (workloads) to authenticate to Google Cloud without using long-lived service account keys**.
+
+## 3️⃣ Create Workload Identity Pool (Console)
+
+### Navigation
+
+**IAM & Admin → Workload Identity Federation → Create Pool**
+
+### Pool Details
+
+* **Name**: `github-pool`
+* **Description**: GitHub Actions Pool
+* **Location**: Global
+
+Click **Continue**
+
+## 4️⃣ Create Workload Identity Provider (GitHub)
+
+### Provider Settings
+
+* **Provider type**: OpenID Connect (OIDC)
+* **Provider name**: `github-provider`
+* **Issuer URL**:
+
+```
+https://token.actions.githubusercontent.com
+
+```
+
+Click **Continue**
+
+---
+
+### Attribute Mapping (VERY IMPORTANT)
+
+In **Attribute Mapping** section:
+
+| Google attributeAssertion |                        |
+| ------------------------- | ---------------------- |
+| `google.subject`          | `assertion.sub`        |
+| `attribute.repository`    | `assertion.repository` |
+
+Click **Save**
+
+✅ GCP now trusts GitHub tokens.
+
+---
+
+## 5️⃣ Link GitHub Repo to Service Account (Console)
+
+This is the **most critical security step**.
+
+### Navigation
+
+**IAM & Admin → Service Accounts → github-actions-sa → Permissions → Grant Access**
+
+### New Principal
+
+Paste this (replace values):
+
+principalSet://iam.googleapis.com/projects/367605285780/locations/global/workloadIdentityPools/github-pool/attribute.repository/Devansh-Chauhan-GitHub/gcp-cloudrun-cicd
+
+---
 
