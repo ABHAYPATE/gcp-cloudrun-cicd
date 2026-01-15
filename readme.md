@@ -151,8 +151,8 @@ git remote add origin https://github.com/<your-username>/gcp-cloudrun-cicd.git
 git push -u origin main
 ```
 
+---
 
-<<<<<<< HEAD
 ## 📁 Project Structure
 
 ```
@@ -165,8 +165,6 @@ gcp-cloudrun-cicd/
 ```
 
 ##
-=======
->>>>>>> 67a0478d35b2b8327627d013bdb47f964f11df93
 
 ---
 
@@ -321,6 +319,204 @@ This is the **most critical security step**.
 Paste this (replace values):
 
 principalSet://iam.googleapis.com/projects/367605285780/locations/global/workloadIdentityPools/github-pool/attribute.repository/Devansh-Chauhan-GitHub/gcp-cloudrun-cicd
+
+# PHASE 3 – GitHub Actions (Build → Push → Deploy)
+
+## 🎯 Goal of this phase
+
+When you do **git push**:
+
+1. Docker image is built
+2. Image is pushed to **Artifact Registry**
+3. App is deployed to **Cloud Run**
+
+---
+
+## 🧠 Mental flow (keep this clear)
+
+```
+GitHub Repo
+   ↓ push
+GitHub Actions
+   ↓ (OIDC auth)
+GCP IAM (Service Account)
+   ↓
+Artifact Registry (Docker image)
+   ↓
+Cloud Run (new revision)
+
+```
+
+Services involved:
+
+* GitHub Actions
+* Artifact Registry
+* Cloud Run
+
+---
+
+## 1️⃣ Create workflow directory (in repo)
+
+Inside your repo:
+
+```
+.github/
+ └── workflows/
+     └── deploy.yml
+
+```
+
+👉 This file name can be anything, `deploy.yml` is standard.
+
+---
+
+## 2️⃣ `deploy.yml` (FULL but CLEAN)
+
+Paste this **as-is**, then we’ll adjust values.
+
+```
+name: Build & Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Authenticate to GCP
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: projects/367605285780/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+        service_account: github-actions-sa@devansh-483504.iam.gserviceaccount.com
+
+    - name: Set up gcloud
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Configure Docker for Artifact Registry
+      run: |
+        gcloud auth configure-docker asia-south1-docker.pkg.dev
+
+    - name: Build Docker image
+      run: |
+        docker build -t asia-south1-docker.pkg.dev/devansh-483504/cloudrun-repo/cloudrun-app:latest .
+
+    - name: Push Docker image
+      run: |
+        docker push asia-south1-docker.pkg.dev/devansh-483504/cloudrun-repo/cloudrun-app:latest
+
+    - name: Deploy to Cloud Run
+      run: |
+        gcloud run deploy cloudrun-app \
+          --image asia-south1-docker.pkg.dev/devansh-483504/cloudrun-repo/cloudrun-app:latest \
+          --region asia-south1 \
+          --platform managed \
+          --allow-unauthenticated \
+          --port 80
+
+```
+
+---
+
+## 3️⃣ Let’s **understand**, not memorize
+
+### 🔹 `permissions`
+
+```
+id-token: write
+
+```
+
+➡️ Allows GitHub to generate an **OIDC token**
+➡️ Without this → authentication fails
+
+---
+
+### 🔹 Auth step (MOST IMPORTANT)
+
+```
+google-github-actions/auth@v2
+
+```
+
+This:
+
+* Uses **OIDC**
+* Impersonates your **service account**
+* No secrets
+* No keys
+
+This is **production-grade GCP CI/CD**.
+
+---
+
+### 🔹 Docker auth
+
+```
+gcloud auth configure-docker asia-south1-docker.pkg.dev
+
+```
+
+➡️ Allows Docker to push to Artifact Registry
+
+---
+
+### 🔹 Cloud Run deploy
+
+```
+gcloud run deploy
+
+```
+
+Creates:
+
+* A **Cloud Run service**
+* New **revision** on every push
+* Public endpoint
+
+---
+
+## 4️⃣ Push and WATCH (important)
+
+Commit and push:
+
+```
+git add .github/workflows/deploy.yml
+git commit -m "Add GitHub Actions CI/CD for Cloud Run"
+git push
+
+```
+
+Then:
+
+* Go to **GitHub → Actions**
+* Open the workflow
+* Watch each step turn ✅ green
+
+---
+
+## ✅ CHECKPOINT
+
+When this finishes successfully:
+✔ Docker image exists in **Artifact Registry**
+✔ Cloud Run service is created
+✔ App is LIVE
+
+You’ll see a URL like:
+
+```
+https://cloudrun-app-xxxxx-uc.a.run.app
+```
 
 ---
 
