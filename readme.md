@@ -151,8 +151,8 @@ git remote add origin https://github.com/<your-username>/gcp-cloudrun-cicd.git
 git push -u origin main
 ```
 
----
 
+<<<<<<< HEAD
 ## 📁 Project Structure
 
 ```
@@ -165,6 +165,8 @@ gcp-cloudrun-cicd/
 ```
 
 ##
+=======
+>>>>>>> 67a0478d35b2b8327627d013bdb47f964f11df93
 
 ---
 
