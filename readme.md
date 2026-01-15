@@ -187,5 +187,98 @@ gcp-cloudrun-cicd/
 
 ---
 
-🚀 **This project is beginner-friendly and production-oriented, designed to demonstrate real-world GCP CI/CD practic
+🚀 **This project is beginner-friendly and production-oriented, designed to demonstrate real-world GCP CI/CD practices.**
+
+---
+
+# 🧭 PHASE 2 (GUI) – Artifact Registry + GitHub → GCP Authentication
+
+## 🧱 Visual Flow (Keep This in Mind)
+
+```
+GitHub Actions
+   ↓ (OIDC)
+Workload Identity Provider (GCP IAM)
+   ↓
+Service Account
+   ↓
+Artifact Registry
+```
+
+---
+
+## 1️⃣ Create Artifact Registry (GCP Console)
+
+### 🔎 Navigation
+
+```
+GCP Console → Artifact Registry → Repositories → Create Repository
+```
+
+### 📝 Repository Configuration
+
+Fill the form with the following values:
+
+* **Name:** `cloudrun-repo`
+* **Format:** Docker
+* **Mode:** Standard
+* **Region:** `asia-south1`
+* **Encryption:** Google-managed key
+
+Click **Create**.
+
+✅ You now have a **private Docker Artifact Registry**.
+
+---
+
+### 🔍 IMPORTANT – Copy Repository Path
+
+After creation:
+
+1. Click on the repository
+2. Copy the **Repository path**
+
+It will look like:
+
+```
+asia-south1-docker.pkg.dev/PROJECT_ID/cloudrun-repo
+```
+
+📌 This value will be used inside **GitHub Actions** to push Docker images.
+
+---
+
+## 2️⃣ Create Service Account (GCP Console)
+
+### 🔎 Navigation
+
+```
+IAM & Admin → Service Accounts → Create Service Account
+```
+
+---
+
+### Step 1: Service Account Details
+
+* **Name:** `github-actions-sa`
+* **Description:** GitHub Actions CI/CD
+
+Click **Create and Continue**.
+
+---
+
+### Step 2: Grant Required Roles
+
+Add the following roles **one by one**:
+
+* **Artifact Registry Writer**
+* **Cloud Run Admin**
+* **Service Account User**
+
+Click **Done**.
+
+---
+
+✅ Service Account successfully created.
+
 
