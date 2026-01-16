@@ -20,32 +20,32 @@ jobs:
     - name: Authenticate to GCP
       uses: google-github-actions/auth@v2
       with:
-        workload_identity_provider: projects/${{ secrets.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-pool/providers/github-provider
-        service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+        workload_identity_provider: projects/917510992324/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+        service_account: github-actions-sa@project-91443e4c-e8b1-4bf3-a86.iam.gserviceaccount.com
 
     - name: Set up gcloud
       uses: google-github-actions/setup-gcloud@v2
       with:
-        project_id: ${{ secrets.GCP_PROJECT_ID }}
-        region: ${{ secrets.GCP_REGION }}
+        project_id: project-91443e4c-e8b1-4bf3-a86
+        region: asia-south1
 
     - name: Configure Docker for Artifact Registry
       run: |
-        gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev
+        gcloud auth configure-docker asia-south1-docker.pkg.dev
 
     - name: Build Docker image
       run: |
-        docker build -t ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cloudrun-repo/cloudrun-app:latest .
+        docker build -t asia-south1-docker.pkg.dev/project-91443e4c-e8b1-4bf3-a86/cloudrun-repo/cloudrun-app:latest .
 
     - name: Push Docker image
       run: |
-        docker push ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cloudrun-repo/cloudrun-app:latest
+        docker push asia-south1-docker.pkg.dev/project-91443e4c-e8b1-4bf3-a86/cloudrun-repo/cloudrun-app:latest
 
     - name: Deploy to Cloud Run
       run: |
         gcloud run deploy cloudrun-app \
-          --image ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cloudrun-repo/cloudrun-app:latest \
-          --region ${{ secrets.GCP_REGION }} \
+          --image asia-south1-docker.pkg.dev/project-91443e4c-e8b1-4bf3-a86/cloudrun-repo/cloudrun-app:latest \
+          --region asia-south1 \
           --platform managed \
           --allow-unauthenticated \
           --port 80
